@@ -1,0 +1,4 @@
+## Replace with your real domain. Caddy issues/renews the TLS certificate automatically.
+campuspulse.example.edu {
+	reverse_proxy app:3000
+}

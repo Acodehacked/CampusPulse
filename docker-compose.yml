@@ -1,0 +1,32 @@
+# Development compose file. Runs only the CampusPulse app container.
+#
+# Supabase itself is managed by the Supabase CLI (`supabase start`), not by
+# this file — that already runs Postgres/Auth/Storage/Studio as its own
+# Docker stack, and duplicating it here would fight the CLI for control.
+#
+# From inside this container, the host's local Supabase is reachable at
+# `host.docker.internal` rather than `127.0.0.1` (which would point at the
+# container itself). Point .env's Supabase URL/DB URL at that host instead
+# of 127.0.0.1 when using this compose file.
+#
+# Recommended primary workflow is still hybrid (documented in README):
+# `supabase start` + `npm run dev` natively. Use this file if you'd rather
+# containerize the app itself during development.
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
