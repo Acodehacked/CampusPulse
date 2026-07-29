@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { parseCookieHeader, serializeCookieHeader } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { createMiddleware } from "hono/factory";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { getServerEnv } from "@/lib/env.server";
@@ -19,31 +20,41 @@ export type AuthVariables = {
 };
 
 /**
- * Resolves the Supabase session from the request's cookies for every Hono
- * request. Hono runs inside a plain Next.js Route Handler here, so it only
- * has the raw Request/Response — parseCookieHeader/serializeCookieHeader are
- * @supabase/ssr's framework-agnostic helpers for exactly this case.
+ * Resolves the Supabase session for every Hono request, either from cookies
+ * (the browser's normal path — Hono runs inside a plain Next.js Route
+ * Handler here, so parseCookieHeader/serializeCookieHeader are @supabase/ssr's
+ * framework-agnostic helpers for reading/writing them without next/headers)
+ * or from an `Authorization: Bearer <access_token>` header for non-browser
+ * API clients (e.g. scripts/smoke.ts, or a future mobile client).
  */
 export const attachSupabase = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
   const env = getServerEnv();
-  const cookieHeader = c.req.header("cookie") ?? "";
+  const bearerToken = c.req.header("authorization")?.match(/^Bearer (.+)$/i)?.[1];
 
-  const supabase = createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
-    cookies: {
-      getAll() {
-        return parseCookieHeader(cookieHeader).map(({ name, value }) => ({ name, value: value ?? "" }));
-      },
-      setAll(cookiesToSet) {
-        for (const { name, value, options } of cookiesToSet) {
-          c.header("Set-Cookie", serializeCookieHeader(name, value, options), { append: true });
-        }
-      },
-    },
-  });
+  const supabase = bearerToken
+    ? createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+        global: { headers: { Authorization: `Bearer ${bearerToken}` } },
+        auth: { autoRefreshToken: false, persistSession: false },
+      })
+    : createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+        cookies: {
+          getAll() {
+            return parseCookieHeader(c.req.header("cookie") ?? "").map(({ name, value }) => ({
+              name,
+              value: value ?? "",
+            }));
+          },
+          setAll(cookiesToSet) {
+            for (const { name, value, options } of cookiesToSet) {
+              c.header("Set-Cookie", serializeCookieHeader(name, value, options), { append: true });
+            }
+          },
+        },
+      });
 
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = bearerToken ? await supabase.auth.getUser(bearerToken) : await supabase.auth.getUser();
 
   let profile: CurrentProfile | null = null;
   if (user) {

@@ -21,11 +21,16 @@ app.use(
   }),
 );
 app.use("*", secureHeaders());
-app.use("*", attachSupabase);
 
 app.onError(errorHandler);
 
+// Mounted before attachSupabase: a Docker/orchestrator liveness probe must
+// never depend on Supabase secrets being configured, so /api/health stays
+// reachable even if env validation would otherwise fail.
 app.route("/health", healthRoute);
+
+app.use("*", attachSupabase);
+
 app.route("/issues", issuesRoute);
 app.route("/me/issues", meIssuesRoute);
 app.route("/admin", adminRoute);
