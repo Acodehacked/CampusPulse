@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { getServerEnv } from "@/lib/env.server";
+import type { Database } from "@/types/database";
 
 /**
  * Supabase client for Server Components / Server Actions. Reads and writes
@@ -11,10 +12,15 @@ import { getServerEnv } from "@/lib/env.server";
  * Next.js refreshes the session in middleware, which is where writes land.
  */
 export async function createSupabaseServerClient() {
-  const env = getServerEnv();
+  // cookies() must run first: it's what tells Next.js this route needs
+  // dynamic rendering. If getServerEnv() threw first (e.g. during a static
+  // prerender pass with placeholder build-time secrets), Next would never
+  // see that dynamic marker and would report a hard build failure instead
+  // of just rendering the route dynamically at request time.
   const cookieStore = await cookies();
+  const env = getServerEnv();
 
-  return createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+  return createServerClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
     cookies: {
       getAll() {
         return cookieStore.getAll();

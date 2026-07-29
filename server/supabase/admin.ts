@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { getServerEnv } from "@/lib/env.server";
+import type { Database } from "@/types/database";
 
 /**
  * Service-role Supabase client. Bypasses RLS entirely — only import this
