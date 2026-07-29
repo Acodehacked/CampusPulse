@@ -1,12 +1,10 @@
 import Link from "next/link";
-import { getCurrentProfile } from "@/lib/auth/session";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
+import type { CurrentProfile } from "@/lib/auth/session";
 
-export async function SiteHeader() {
-  const profile = await getCurrentProfile();
-
+export function SiteHeader({ profile }: { profile: CurrentProfile | null }) {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">

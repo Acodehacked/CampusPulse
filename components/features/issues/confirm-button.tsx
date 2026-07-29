@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useIssueRealtime } from "@/lib/hooks/use-issue-realtime";
 
 export function ConfirmButton({
   issueId,
@@ -19,6 +20,20 @@ export function ConfirmButton({
   const [isPending, startTransition] = useTransition();
   const [confirmed, setConfirmed] = useState(initialConfirmed);
   const [count, setCount] = useState(initialCount);
+
+  // Adjust-state-during-render pattern (react.dev/learn/you-might-not-need-an-effect):
+  // resyncs local state with fresh server props after a realtime-triggered
+  // router.refresh() (e.g. someone else confirmed this issue), without an effect.
+  const [prevInitialConfirmed, setPrevInitialConfirmed] = useState(initialConfirmed);
+  const [prevInitialCount, setPrevInitialCount] = useState(initialCount);
+  if (initialConfirmed !== prevInitialConfirmed || initialCount !== prevInitialCount) {
+    setPrevInitialConfirmed(initialConfirmed);
+    setPrevInitialCount(initialCount);
+    setConfirmed(initialConfirmed);
+    setCount(initialCount);
+  }
+
+  useIssueRealtime(issueId);
 
   function toggle() {
     if (isPending) return;
