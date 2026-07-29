@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,13 +13,41 @@ import { issueCreateSchema } from "@/schemas/issues";
 import { CATEGORY_LABELS } from "@/constants/issues";
 import type { IssueDetail } from "@/types/issue";
 
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
 type FieldErrors = Partial<Record<"title" | "description" | "category" | "location", string>>;
 
 export function CreateIssueForm() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isPending, startTransition] = useTransition();
   const [values, setValues] = useState({ title: "", description: "", category: "", location: "" });
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      toast.error("Image must be under 5MB");
+      return;
+    }
+
+    setImage(file);
+    setImagePreview(URL.createObjectURL(file));
+  }
+
+  function clearImage() {
+    setImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -49,8 +78,23 @@ export function CreateIssueForm() {
         return;
       }
 
-      toast.success("Issue reported. Thanks for flagging it!");
       const created = body.data as IssueDetail;
+
+      if (image) {
+        const formData = new FormData();
+        formData.append("file", image);
+        const uploadRes = await fetch(`/api/issues/${created.id}/attachments`, {
+          method: "POST",
+          body: formData,
+        });
+        if (!uploadRes.ok) {
+          toast.warning("Issue reported, but the image failed to upload.");
+          router.push(`/issues/${created.id}`);
+          return;
+        }
+      }
+
+      toast.success("Issue reported. Thanks for flagging it!");
       router.push(`/issues/${created.id}`);
     });
   }
@@ -118,6 +162,42 @@ export function CreateIssueForm() {
           />
           {errors.location && <p className="text-sm text-destructive">{errors.location}</p>}
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Photo (optional)</Label>
+        {imagePreview ? (
+          <div className="relative w-fit">
+            {/* eslint-disable-next-line @next/next/no-img-element -- local object URL preview, not a remote image */}
+            <img src={imagePreview} alt="Selected evidence" className="h-32 rounded-md border object-cover" />
+            <button
+              type="button"
+              onClick={clearImage}
+              className="absolute -right-2 -top-2 flex size-6 items-center justify-center rounded-full border bg-background shadow-sm"
+              aria-label="Remove image"
+            >
+              <X className="size-3.5" />
+            </button>
+          </div>
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isPending}
+          >
+            <ImagePlus className="size-4" />
+            Attach photo
+          </Button>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          onChange={handleImageSelect}
+          className="hidden"
+        />
       </div>
 
       <Button type="submit" disabled={isPending}>

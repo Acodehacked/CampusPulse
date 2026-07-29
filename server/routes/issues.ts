@@ -13,6 +13,8 @@ import {
 import * as issueService from "@/server/services/issue-service";
 import * as issuesRepo from "@/server/repositories/issues.repo";
 import * as confirmationService from "@/server/services/confirmation-service";
+import { uploadAttachment } from "@/server/services/attachment-service";
+import { AppError } from "@/server/lib/app-error";
 
 export const issuesRoute = new Hono<{ Variables: AuthVariables }>()
   .get("/", zValidator("query", issueFiltersSchema), async (c) => {
@@ -67,6 +69,21 @@ export const issuesRoute = new Hono<{ Variables: AuthVariables }>()
     const { id } = c.req.valid("param");
     const result = await confirmationService.unconfirmIssue(supabase, id, profile.id);
     return c.json(ok(result));
+  })
+
+  .post("/:id/attachments", requireAuth, zValidator("param", issueIdParamSchema), async (c) => {
+    const supabase = c.get("supabase");
+    const profile = c.get("profile")!;
+    const { id } = c.req.valid("param");
+
+    const body = await c.req.parseBody();
+    const file = body.file;
+    if (!(file instanceof File)) {
+      throw AppError.validation("An image file is required");
+    }
+
+    const attachment = await uploadAttachment(supabase, id, profile.id, file);
+    return c.json(ok(attachment), 201);
   });
 
 export const meIssuesRoute = new Hono<{ Variables: AuthVariables }>().get(
