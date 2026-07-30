@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -49,10 +50,12 @@ export function UserMenu({ profile }: { profile: CurrentProfile }) {
         }
       />
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="font-normal">
-          <p className="text-sm font-medium">{profile.displayName}</p>
-          <p className="truncate text-xs text-muted-foreground">{profile.email}</p>
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="font-normal">
+            <p className="text-sm font-medium">{profile.displayName}</p>
+            <p className="truncate text-xs text-muted-foreground">{profile.email}</p>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} disabled={isPending}>
           <LogOut className="size-4" />
