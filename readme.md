@@ -15,7 +15,7 @@ Don't Mind. this readme is made by chatgpt, But the code and ideas are all mine 
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 
-[🌐 Live Demo](#) • [🐛 Report Bug](../../issues) • [💡 Request Feature](../../issues)
+[🌐 Live Demo](https://campus-pulse-swart.vercel.app/) • [🐛 Report Bug](../../issues) • [💡 Request Feature](../../issues)
 
 </div>
 
