@@ -16,8 +16,13 @@ export default async function LandingPage() {
           infrastructure problems — confirm they&apos;re affected too, and track resolution in the open.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-          <Button size="lg" render={<Link href="/issues/new">Report an Issue</Link>} />
-          <Button size="lg" variant="outline" render={<Link href="/issues">Explore Issues</Link>} />
+          <Button size="lg" nativeButton={false} render={<Link href="/issues/new">Report an Issue</Link>} />
+          <Button
+            size="lg"
+            variant="outline"
+            nativeButton={false}
+            render={<Link href="/issues">Explore Issues</Link>}
+          />
         </div>
 
         {stats && stats.totalIssues > 0 && (

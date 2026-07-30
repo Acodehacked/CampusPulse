@@ -1,5 +1,5 @@
-# Development compose file. Runs only the CampusPulse app container.
-#
+# Development compose file. Runs only the CampusPulse app container. dev mode here bros
+# Try this app offline (Dev)
 # Supabase itself is managed by the Supabase CLI (`supabase start`), not by
 # this file — that already runs Postgres/Auth/Storage/Studio as its own
 # Docker stack, and duplicating it here would fight the CLI for control.
