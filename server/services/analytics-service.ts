@@ -22,6 +22,23 @@ export async function getPublicStats() {
   };
 }
 
+/**
+ * A handful of real recent issues (title + status only, no reporter identity)
+ * for the landing page's activity preview — never fabricated placeholder
+ * rows, matching the "no fake production statistics" rule applied to this
+ * UI element too.
+ */
+export async function getRecentPublicIssues(limit = 3) {
+  const db = getDb();
+  const rows = await db
+    .select({ id: issues.id, title: issues.title, status: issues.status, createdAt: issues.createdAt })
+    .from(issues)
+    .orderBy(desc(issues.createdAt))
+    .limit(limit);
+
+  return rows.map((r) => ({ id: r.id, title: r.title, status: r.status, createdAt: r.createdAt.toISOString() }));
+}
+
 const OPEN_STATUSES: IssueStatus[] = ["reported", "verified", "in_progress"];
 
 /**
