@@ -594,13 +594,11 @@ docs/screenshots/
 
 Example:
 
-![CampusPulse Home](docs/screenshots/home.png)
+![CampusPulse Home](docs/images/dashboard.png)
 
-![Issue Feed](docs/screenshots/issues.png)
+![Issue Feed](docs/images/issue.png)
 
-![Issue Details](docs/screenshots/issue-details.png)
-
-![Admin Dashboard](docs/screenshots/admin-dashboard.png)
+![Landing page](docs/images/landing.png)
 
 -->
 
