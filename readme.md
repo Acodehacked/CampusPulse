@@ -586,11 +586,7 @@ PostgreSQL + RLS
 
 > Screenshots will be added as development progresses.
 
-<!--
 
-Place screenshots inside:
-
-docs/screenshots/
 
 Example:
 
@@ -600,7 +596,6 @@ Example:
 
 ![Landing page](docs/images/landing.png)
 
--->
 
 ---
 
